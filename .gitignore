@@ -1,0 +1,20 @@
+# Compiled Python files
+*.pyc
+__pycache__/
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Local development settings
+.env
+
+# IDE files
+.vscode/
+.idea/
+
+# Dependency directories
+venv/
+env/
+*/venv/
+*/env/
