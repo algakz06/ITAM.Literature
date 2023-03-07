@@ -202,28 +202,3 @@ insert into book (name, category_id, ordering) values
   ('Rework: бизнес без предрассудков :: Джейсон Фрайд, Дэвид Хайнемайер Хенссон', 15, 13),
   ('Как привести дела в порядок :: Дэвид Аллен', 15, 14);
 
-
-update book
-set 
-read_start='2022-11-21',
-read_finish='2022-12-18',
-read_comments='книга огонь, в группе доступно 4.5 часа видео-комментариев'
-where name='Чистый код :: Роберт Мартин';
-
-
-update book
-set 
-read_start='2022-12-18',
-read_finish='2022-12-31',
-read_comments='неплохой вводный материал по CS, в группе доступно 2 часа видео-комментариев'
-where name='Теоретический минимум по Computer Science. Все что нужно программисту и разработчику :: Фило Владстон Феррейра';
-
-update book
-set 
-read_start='2023-01-01',
-read_finish='2023-02-12',
-read_comments='отличная книга по SQL в исполнении постгреса'
-where name='PostgreSQL. Основы языка SQL :: Евгений Моргунов';
-
-
-insert into voting (voting_start, voting_finish) values ('2023-01-26', '2023-01-30');
