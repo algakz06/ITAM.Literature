@@ -33,3 +33,4 @@ class Category:
     def __init__(self, category_dict: dict[int, str]):
         self.id = category_dict.get('id')
         self.name = category_dict.get('name')
+

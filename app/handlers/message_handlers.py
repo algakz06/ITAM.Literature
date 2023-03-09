@@ -1,3 +1,5 @@
+from app.templates import render_template
+
 async def start(message):
     await message.answer('Привет')
 

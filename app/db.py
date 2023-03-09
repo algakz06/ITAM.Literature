@@ -1,62 +1,55 @@
-import psycopg2
-from psycopg2 import extras
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 
 import config
-from models import Book, Category
+from models.db_models import Book, BookCategory, Base
 
-class DB:
-    conn: psycopg2._psycopg.connection
-    cur: psycopg2._psycopg.cursor
-
+class DBManager:
     def __init__(self):
-        self.conn = psycopg2.connect(
-            host=config.POSTGRES_HOST,
-            user=config.POSTGRES_USER,
-            password=config.POSTGRES_PASSWORD,
-            database=config.POSTGRES_DB
+        self.engine = create_engine(
+            f'postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}/{config.POSTGRES_DB}',
+            echo=True
         )
-        self.cur = self.conn.cursor(cursor_factory=extras.DictCursor)
+
+        Base.metadata.drop_all(self.engine)
+        Base.metadata.create_all(self.engine)
+
+        with open('db.sql', 'r') as file:
+            sql = file.read().split('\n')
+
+        queries = [query.strip() for query in sql if query.strip()]
+
+        with self.engine.connect() as connection:
+            for query in queries:
+                connection.execute(text(query))
+                connection.commit()
+
+        self.Session = sessionmaker(bind=self.engine)
 
     def get_all_books(self) -> list[Book]:
-        self.cur.execute('''
-            select * from book
-        ''')
-
-        books = self.cur.fetchall()
-
-        return [Book(dict(book)) for book in books]
+        session = self.Session()
+        books = session.query(Book, BookCategory.name).join(BookCategory).all()
+        return books
 
     def get_categories(self) -> list:
-        self.cur.execute('''
-            select * from book_category
-        ''')
-
-        categories = self.cur.fetchall()
-
-        return [Category(dict(category)) for category in categories]
+        session = self.Session()
+        categories = session.query(BookCategory).all()
+        return categories
 
     def get_book_by_index(self, index: int) -> Book:
-        self.cur.execute('''
-            select * from book where id = %s
-        ''', [index])
+        session = self.Session()
+        book = session.query(Book).filter_by(id=index)
+        return book
 
-        book = self.cur.fetchone()
-
-        return Book(dict(book))
-
-    def get_read_books(self) -> list[Book]: # use for get list of books we read (in past) or reading now
-        self.cur.execute('''
-            select * from book where read_start not null and read_finish not null
-        ''')
-
-        books = self.cur.fetchall()
-
-        return [Book(dict(book)) for book in books]
+    def get_read_books(self) -> list[Book]:
+        session = self.Session()
+        books = session.query(Book).filter(Book.read_start.isnot(None), Book.read_finish.isnot(None)).all()
+        return books
 
     def close_connection(self) -> None:
-        self.conn.close()
+        self.engine.dispose()
 
 if __name__ == '__main__':
-    db = DB()
-    print(db.get_book_by_index(1))
-
+    db = DBManager()
+    print([book.Book.name for book in db.get_all_books()])
