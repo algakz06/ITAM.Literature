@@ -1,9 +1,12 @@
 from sqlalchemy import Column, ForeignKey, Integer, String,\
-     Text, DateTime, UniqueConstraint, Boolean, CheckConstraint,\
-     ForeignKeyConstraint, Date, Identity
+     Text, DateTime, UniqueConstraint, CheckConstraint,\
+     ForeignKeyConstraint, Date, Identity, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from datetime import datetime
+from typing import List
+import config
 
 Base = declarative_base()
 
@@ -11,6 +14,7 @@ class BotUser(Base):
     __tablename__ = 'bot_user'
 
     telegram_id = Column(Integer, primary_key=True)
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 class BookCategory(Base):
@@ -20,7 +24,9 @@ class BookCategory(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     name = Column(String(60), nullable=False, unique=True)
     ordering = Column(Integer, nullable=False, unique=True)
-    books = relationship("Book", back_populates="category")
+
+    def __repr__(self) -> str:
+        return f'<BookCategory(id={self.id}, name={self.name})>'
 
 class Book(Base):
     __tablename__ = 'book'
@@ -29,7 +35,6 @@ class Book(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     name = Column(Text)
     category_id = Column(Integer, ForeignKey('book_category.id'))
-    category = relationship("BookCategory", back_populates="books")
     ordering = Column(Integer, nullable=False)
     read_start = Column(Date)
     read_finish = Column(Date)
@@ -48,11 +53,17 @@ class Book(Base):
         UniqueConstraint('category_id', 'ordering')
     )
 
+    def __repr__(self) -> str:
+        return f'<Book(id={self.id}, name={self.name}, category_id={self.category_id})>'
+
+
+
 class VoteType(Base):
     __tablename__ = 'vote_type'
 
     id = Column(Integer, primary_key=True)
     vote_type_name = Column(String, nullable=True)
+
 
 class Voting(Base):
     __tablename__ = 'voting'
@@ -60,10 +71,11 @@ class Voting(Base):
     id = Column(Integer, primary_key=True)
     voting_start = Column(Date, nullable=False, unique=True)
     voting_finish = Column(Date, nullable=True, unique=True)
-    vote_type = Column(Integer, ForeignKey('vote_type.id'), nullable=False)
+    voting_type = Column(Integer, ForeignKey('vote_type.id'), nullable=False)
     __table_args__ = (
         CheckConstraint(voting_finish > voting_start),
     )
+
 
 class VoteBook(Base):
     __tablename__ = 'vote_book'
@@ -77,6 +89,7 @@ class VoteBook(Base):
         ForeignKeyConstraint(['vote_id'], ['voting.id']),
         ForeignKeyConstraint(['user_id'], ['bot_user.telegram_id']),
     )
+
 
 class VoteCategory(Base):
     __tablename__ = 'vote_category'

@@ -1,28 +1,62 @@
 from dataclasses import dataclass
 from typing import Optional
+from datetime import datetime
+from . import db_models
+from enum import Enum
 
 @dataclass
 class Book:
     id: int
     name: str
     category_id: int
-    category_name: str
     author: str
     read_start: str | None
     read_finish: str | None
     read_comments: str | None
 
-    def __init__(self, book_dict: dict):
-        self.id = book_dict.get('id')
-        self.category_id = book_dict.get('category_id')
-        self.category_name = book_dict.get('category_name')
-        self.read_start = book_dict.get('read_start')
-        self.read_finish = book_dict.get('read_finish')
-        self.read_comments = book_dict.get('read_comments')
+    def is_started(self) -> bool:
+        if self.read_start is not None:
+            now_date = datetime.now().date()
+            start_read_date = datetime.strptime(
+                self.read_start, config.DATE_FORMAT
+            ).date()
+
+            return start_read_date >= now_date
+
+        return False
+
+    def is_finished(self) -> bool:
+        if self.read_finish is not None:
+            now_date = datetime.now().date()
+            finish_read_date = datetime.strptime(
+                self.read_finish, config.DATE_FORMAT
+            ).date()
+
+            return finish_read_date <= now_date
+
+        return False
+
+    def is_planned(self) -> bool:
+        if self.read_start is not None:
+            now_date = datetime.now().date()
+            start_read_date = datetime.strptime(
+                self.read_start, config.DATE_FORMAT
+            ).date()
+
+            return start_read_date >= now_date
+
+        return False
+
+    def __init__(self, book: db_models.Book):
+        self.id = book.id
+        self.category_id = book.category_id
+        self.read_start = book.read_start
+        self.read_finish = book.read_finish
+        self.read_comments = book.read_comments
         try:
-            self.name, self.author = tuple(atr.strip() for atr in book_dict.get('name').split('::'))
+            self.name, self.author = tuple(atr.strip() for atr in book.name.split('::'))
         except ValueError:
-            self.name, self.author = book_dict.get('name'), ''
+            self.name, self.author = book.name, ''
 
 @dataclass
 class Category:
@@ -30,7 +64,18 @@ class Category:
     name: str
     books: Optional[list[Book]] = None
 
-    def __init__(self, category_dict: dict[int, str]):
-        self.id = category_dict.get('id')
-        self.name = category_dict.get('name')
+    def __init__(self, category: db_models.BookCategory):
+        self.id = category.id
+        self.name = category.name
 
+class Voting(Enum):
+    Category = 1
+    Book = 2
+
+class Vote():
+    first_vote: int
+    second_vote: int
+    third_vote: int
+
+    def __init__(self, votes: list[int]) -> None:
+        self.first_vote, self.second_vote, self.third_vote = votes

@@ -1,0 +1,7 @@
+<b>Категории книг</b><br>
+<br>
+{% for category in categories %}
+  {% if not voting: %}◦{% else %}{{ category.id }}.{% endif %} {{ category.name }}
+  <br>
+{% endfor %}
+

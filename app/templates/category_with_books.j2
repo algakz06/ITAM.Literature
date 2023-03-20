@@ -1,7 +1,8 @@
 <b>{{ category.name }}</b><br>
 <br>
 {% for book in category.books %}
-  {% if start_index is none: %}◦{% else %}{{ start_index + loop.index }}.{% endif %} {{ book.name }}
+  {% if not voting: %}◦{% else %}{{ book.id }}.{% endif %} {{ book.name }} 
+  {% if book.author %}:: <i>{{ book.author }}</i> {% endif %}
     {% if book.is_started() %}
       —<b>
       {% if book.is_finished() %}
