@@ -7,14 +7,13 @@ from aiogram.dispatcher.filters import Text, state
 from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
-import config
-from keyboards import inline_keyboards
-from db import DBManager
-from templates import render_template
-from models.models import Voting, Vote
-from models import states
-from utils import schulze
-from utils import utilities
+from itamliterature import config
+from itamliterature.keyboards import inline_keyboards
+from itamliterature.db import DBManager
+from itamliterature.templates import render_template
+from itamliterature.models.models import Voting, Vote
+from itamliterature.models import states
+from itamliterature.utils import schulze, utilities
 
 
 # filters
@@ -28,6 +27,7 @@ db = DBManager()
 #default users handlers
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message) -> None:
+    db.add_user(message.from_user.id)
     await message.answer(render_template('start.j2'))
 
 #-------------------------------------------------------------------------
@@ -179,30 +179,36 @@ async def insert_voting_dates(message: types.Message, state: FSMContext):
     await state.finish()
     
 #-------------------------------------------------------------------------
-@dp.message_handler(commands='vote_results')
+@dp.message_handler(commands='voteresults')
 async def get_vote_results(message: types.Message) -> None:
     status, voting = db.get_current_or_last_voting()
     
     votes: list[Vote]
     candidates: list[int]
     
-    if voting.vote_type == Voting.Category.value:
-        votes = db.get_category_votes()
-    elif voting.vote_type == Voting.Book.value:
-        votes = db.get_book_votes()
+    if voting.voting_type == Voting.Category.value:
+        votes = db.get_category_votes(voting.id)
+        candidates = [category.id for category in db.get_categories()]
+    elif voting.voting_type == Voting.Book.value:
+        votes = db.get_book_votes(voting.id)
         
+    if not votes:
+        await message.answer(render_template('vote_results_no_data.j2'))
+        return
+    
     weighted_ranks = utilities.data_for_shulze(votes)
     
     leaders = schulze.compute_ranks(candidates, weighted_ranks)
     
-    leaders = leaders[:10]
-    
-    await message.answer(f'{leaders}')
+    leaders = [db.get_category_by_index(index) for index in leaders[:10]]
     
     
+    await message.answer(render_template('vote_results.j2', {
+        'status': status,
+        'leaders': leaders,
+        'voting': voting
+    }))
     
     
-
-
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)

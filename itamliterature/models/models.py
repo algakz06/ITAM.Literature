@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
-import db_models
+from itamliterature.models import db_models
+from itamliterature import config
 from enum import Enum
 
 @dataclass

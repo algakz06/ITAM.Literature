@@ -7,10 +7,10 @@ import pprint
 from datetime import datetime
 from typing import List, Tuple
 
-import config
-from models.db_models import Book, BookCategory, Base, Voting,\
+from itamliterature import config
+from itamliterature.models.db_models import Book, BookCategory, Base, Voting,\
     VoteCategory, VoteBook, BotUser
-from models import models
+from itamliterature.models import models
 
 class DBManager:
     def __init__(self):
@@ -28,7 +28,7 @@ class DBManager:
         Base.metadata.drop_all(self.engine)
         Base.metadata.create_all(self.engine)
 
-        with open('app/db.sql', 'r') as file:
+        with open('itamliterature/db.sql', 'r') as file:
             sql = file.read().split('\n')
 
         queries = [query.strip() for query in sql if query.strip()]
@@ -63,7 +63,7 @@ class DBManager:
         return self.session.query(Book).filter(Book.id.in_(indexes)).all()
     
     def get_category_by_index(self, indexes: list[int]) -> BookCategory:
-        return self.session.query(BookCategory).filter(BookCategory.id.in_(indexes)).all()
+        return [models.Category(category) for category in self.session.query(BookCategory).filter(BookCategory.id.in_(indexes)).all()]
     
     def get_now_read_books(self) -> list[models.Book]:
         return [
@@ -81,7 +81,7 @@ class DBManager:
             ).all()
             ]
     
-    def get_current_or_last_voting(self) -> Tuple(str, Voting):
+    def get_current_or_last_voting(self) -> tuple:
         try:
             return ('now', self.session.query(Voting).filter(
                 Voting.voting_start.isnot(None),
@@ -128,19 +128,19 @@ class DBManager:
         except NoResultFound:
             return None
         
-    def get_category_votes(self, vote_id: int) -> List(models.Vote):
+    def get_category_votes(self, vote_id: int) -> list:
         return [models.Vote([
             vote.first_category_id,
             vote.second_category_id,
             vote.third_category_id
-        ]) for vote in self.session.query(VoteCategory).filter(VoteCategory.id == vote_id)]
+        ]) for vote in self.session.query(VoteCategory).filter(VoteCategory.vote_id == vote_id)]
         
-    def get_book_votes(self, vote_id: int) -> List(models.Vote):
+    def get_book_votes(self, vote_id: int) -> list:
         return [models.Vote([
             vote.first_book_id,
             vote.second_book_id,
             vote.third_book_id
-        ]) for vote in self.session.query(VoteBook).filter(VoteBook.id == vote_id)]
+        ]) for vote in self.session.query(VoteBook).filter(VoteBook.vote_id == vote_id)]
 
     def start_voting(self, start: str, finish: str | None = None):
         print('hello')
@@ -179,6 +179,9 @@ class DBManager:
             return True
         except NoResultFound:
             return False
+        
+    def add_user(self, id: int) -> None:
+        self.session.add(BotUser(telegram_id=id))
 
 
     def close_connection(self) -> None:
