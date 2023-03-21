@@ -13,6 +13,8 @@ from db import DBManager
 from templates import render_template
 from models.models import Voting, Vote
 from models import states
+from utils import schulze
+from utils import utilities
 
 
 # filters
@@ -93,13 +95,13 @@ async def vote(message: types.Message) -> None:
         await message.answer(render_template('vote_cant_vote.j2'))
         return None
 
-    current_voting = db.get_current_voting()
+    status, voting = db.get_current_or_last_voting()
 
-    if not current_voting:
+    if status != 'now':
         await message.answer(render_template('vote_no_actual_voting.j2'))
         return None
     
-    if current_voting.voting_type == Voting.Category.value:
+    if voting.voting_type == Voting.Category.value:
         categories = db.get_categories()
 
         await states.Voting.in_vote_mode.set()
@@ -109,7 +111,7 @@ async def vote(message: types.Message) -> None:
             'voting': True
         }))
 
-    elif current_voting.voting_type == Voting.Book.value:
+    elif voting.voting_type == Voting.Book.value:
         pass
 
 #-------------------------------------------------------------------------
@@ -120,10 +122,10 @@ async def insert_votes(message: types.Message, state: FSMContext):
     if len(votes) != 3:
         message.answer(render_template('vote_incorrect_input.j2'))
 
-    current_voting = db.get_current_voting()
+    _, voting = db.get_current_or_last_voting()
 
-    if current_voting.voting_type == Voting.Category.value:
-        insert_result = db.insert_vote_category(current_voting.id, message.from_user.id, Vote(votes))
+    if voting.voting_type == Voting.Category.value:
+        insert_result = db.insert_vote_category(voting.id, message.from_user.id, Vote(votes))
 
         if insert_result == True:
             categories = db.get_category_by_index(votes)
@@ -133,8 +135,8 @@ async def insert_votes(message: types.Message, state: FSMContext):
             await state.finish()
         else:
             await message.answer('vote_incorrect_categories.j2')
-    elif current_voting.vote_typing == Voting.Book.value:
-        insert_result = db.insert_vote_book(current_voting.id, message.from_user.id, Vote(votes))
+    elif voting.vote_typing == Voting.Book.value:
+        insert_result = db.insert_vote_book(voting.id, message.from_user.id, Vote(votes))
 
         if insert_result == True:
             books = db.get_book_by_index(votes)
@@ -175,6 +177,31 @@ async def insert_voting_dates(message: types.Message, state: FSMContext):
     db.start_voting(start_date, finish_date)
     await message.answer('Успешно')
     await state.finish()
+    
+#-------------------------------------------------------------------------
+@dp.message_handler(commands='vote_results')
+async def get_vote_results(message: types.Message) -> None:
+    status, voting = db.get_current_or_last_voting()
+    
+    votes: list[Vote]
+    candidates: list[int]
+    
+    if voting.vote_type == Voting.Category.value:
+        votes = db.get_category_votes()
+    elif voting.vote_type == Voting.Book.value:
+        votes = db.get_book_votes()
+        
+    weighted_ranks = utilities.data_for_shulze(votes)
+    
+    leaders = schulze.compute_ranks(candidates, weighted_ranks)
+    
+    leaders = leaders[:10]
+    
+    await message.answer(f'{leaders}')
+    
+    
+    
+    
 
 
 if __name__ == '__main__':

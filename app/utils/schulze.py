@@ -117,3 +117,14 @@ def compute_ranks(candidates, weighted_ranks):
     d = _compute_d(weighted_ranks, candidates)
     p = _compute_p(d, candidates)
     return _rank_p(candidates, p)
+
+if __name__ == '__main__':
+    print(compute_ranks(
+        [1, 2, 3, 4, 5],
+        [
+            ([[4], [2], [3]], 2),
+            ([[5], [2], [3]], 10),
+            ([[4], [3], [2]], 1),
+            ([[4], [2], [5]], 2),
+        ]
+    ))

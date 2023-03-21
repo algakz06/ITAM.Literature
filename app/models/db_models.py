@@ -6,7 +6,6 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from typing import List
-import config
 
 Base = declarative_base()
 

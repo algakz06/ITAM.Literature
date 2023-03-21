@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
-from . import db_models
+import db_models
 from enum import Enum
 
 @dataclass
@@ -79,3 +79,4 @@ class Vote():
 
     def __init__(self, votes: list[int]) -> None:
         self.first_vote, self.second_vote, self.third_vote = votes
+        

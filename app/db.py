@@ -1,11 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, desc
-from sqlalchemy.exc import NoResultFound, DataError
+from sqlalchemy.exc import NoResultFound, DataError, IntegrityError
 
 import pprint
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 import config
 from models.db_models import Book, BookCategory, Base, Voting,\
@@ -81,47 +81,45 @@ class DBManager:
             ).all()
             ]
     
-    def get_current_voting(self) -> Voting:
+    def get_current_or_last_voting(self) -> Tuple(str, Voting):
         try:
-            return self.session.query(Voting).filter(
+            return ('now', self.session.query(Voting).filter(
                 Voting.voting_start.isnot(None),
                 Voting.voting_finish > datetime.now()
-            ).one()
+            ).one())
         except NoResultFound:
-            return False
+            return ('last', self.session.query(Voting).order_by(desc(Voting.voting_finish)).first())
         
     def insert_vote_category(self, vote_id: int, user_id: int, vote: models.Vote) -> bool:
-        votes = [VoteCategory(vote_id=vote_id,
+        vote = VoteCategory(vote_id=vote_id,
                               user_id=user_id,
                               first_category_id=vote.first_vote,
                               second_category_id=vote.second_vote,
                               third_category_id=vote.third_vote
-                              )]
-        try:
-            self.session.add_all(votes)
-            self.session.commit()
-            return True
-        except Exception as error:
-            print(error)
-            return False
+                              )
+        
+        self.session.merge(vote)
+        self.session.commit()
+        
+        return True
+
         
     def insert_vote_book(self, vote_id: int, user_id: int, vote: models.Vote) -> bool:
-        votes = [VoteCategory(vote_id=vote_id,
+        vote = VoteBook(vote_id=vote_id,
                               user_id=user_id,
                               first_book_id=vote.first_vote,
                               second_book_id=vote.second_vote,
                               third_book_id=vote.third_vote
-                              )]
-        try:
-            self.session.add_all(votes)
-            self.session.commit()
-            return True
-        except Exception as error:
-            print(error)
-            return False
+                              )
+        
+        self.session.merge(vote)
+        self.session.commit()
+        
+        return True
 
-    def insert_bot_user(self, user_id: int) -> None:
-        self.session.add(BotUser(telegram_id=user_id))
+
+    def insert_bot_user(self, user_id: int, is_admin: bool = False) -> None:
+        self.session.merge(BotUser(telegram_id=user_id, is_admin=is_admin))
         self.session.commit()
         
     def get_last_voting(self) -> Voting | None:
@@ -129,6 +127,20 @@ class DBManager:
             return self.session.query(Voting).order_by(Voting.id.desc()).first()
         except NoResultFound:
             return None
+        
+    def get_category_votes(self, vote_id: int) -> List(models.Vote):
+        return [models.Vote([
+            vote.first_category_id,
+            vote.second_category_id,
+            vote.third_category_id
+        ]) for vote in self.session.query(VoteCategory).filter(VoteCategory.id == vote_id)]
+        
+    def get_book_votes(self, vote_id: int) -> List(models.Vote):
+        return [models.Vote([
+            vote.first_book_id,
+            vote.second_book_id,
+            vote.third_book_id
+        ]) for vote in self.session.query(VoteBook).filter(VoteBook.id == vote_id)]
 
     def start_voting(self, start: str, finish: str | None = None):
         print('hello')
