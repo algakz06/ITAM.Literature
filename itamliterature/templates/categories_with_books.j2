@@ -1,0 +1,22 @@
+<b>{{ category.name }}</b><br>
+<br>
+{% for book in category.books %}
+  {% if not voting: %}◦{% else %}{{ book.id }}.{% endif %} {{ book.name }} 
+  {% if book.author %}:: <i>{{ book.author }}</i> {% endif %}
+    {% if book.is_started() %}
+      —<b>
+      {% if book.is_finished() %}
+        прочитана
+      {% else %}
+        читаем сейчас
+      {% endif %}
+      . {{ book.read_comments }}
+    </b>
+  {% elif book.is_planned(): %}
+    —<b>
+      будем читать с {{ book.read_start }} по {{ book.read_finish }}.
+      {{ book.read_comments }}
+    </b>
+  {% endif %}
+<br>
+{% endfor %}

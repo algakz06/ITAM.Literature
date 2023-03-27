@@ -1,7 +1,7 @@
 from collections import Counter
 from itamliterature.models.models import Vote
 
-def data_for_shulze(votes: list[Vote]) -> list:
+def data_for_shulze(votes: list[Vote]) -> list[tuple[Vote, int]]:
     temp_dict = Counter([(
         vote.first_vote,
         vote.second_vote,

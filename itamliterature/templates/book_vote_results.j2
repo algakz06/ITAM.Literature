@@ -1,0 +1,31 @@
+<b>Результаты
+    {% if status == 'last' %}прошедшего{% else %}текущего{% endif %}
+    голосования</b><br>
+  <br>
+  {% if categories|length == 0 %}
+    Пока никто не проголосовал, ты можешь стать первым, вжух!<br>
+  {% else %}
+    {% for category in categories %}
+        <b>{{ category.name }}</b>. <br>
+        <br>
+        {% for objs_in_rank in category.leaders%}
+            {{loop.index}}.
+            {% if objs_in_rank|length > 1 %}
+            Несколько позиций занимают это место:<br>
+            {% endif %}
+            {% for obj in objs_in_rank %}
+            {{ obj.name }}<br>
+            {% endfor %}
+            <br>
+        {% endfor %}
+    {% endfor %}
+  {% endif %}
+  <br>
+  <i>Даты голосования: с {{ voting.voting_start }} по
+    {{ voting.voting_finish }}<br>
+    Голосов: {{ 1 }}</i><br>
+  <br>
+  {% if status == 'now' %}
+  Переголосовать: /vote
+  {% endif %}
+  

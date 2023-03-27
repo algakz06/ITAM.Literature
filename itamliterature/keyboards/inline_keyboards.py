@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from itamliterature.models.models import Category
 
 def get_categories_keyboard(
     current_category_index: int, categories_count: int, callback_prefix: str
@@ -21,4 +22,17 @@ def get_categories_keyboard(
             ),
         ]
     ]
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+def get_books_voting_keyboard(categories: list[Category]) -> InlineKeyboardMarkup:
+    keyboard = []
+    for category in categories:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    category.name,
+                    callback_data=f"books_voting_{category.id}",
+                )
+            ]
+        )
     return InlineKeyboardMarkup(inline_keyboard=keyboard)

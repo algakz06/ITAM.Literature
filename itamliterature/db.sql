@@ -130,7 +130,5 @@ insert into book (name, category_id, ordering) values ('Не заставляй�
 
 insert into bot_user(telegram_id, is_admin) values (623100489, True)
 
-insert into vote_type(id, vote_type_name) values (1, 'category')
-insert into vote_type(id, vote_type_name) values (2, 'book')
-
-insert into voting(id, voting_start, voting_finish, voting_type) values (1, '2023-03-20', '2023-03-22', 1)
+insert into voting_type(id, vote_type_name) values (1, 'category')
+insert into voting_type(id, vote_type_name) values (2, 'book')

@@ -3,9 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String,\
      ForeignKeyConstraint, Date, Identity, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from typing import List
+
 
 Base = declarative_base()
 
@@ -54,14 +52,22 @@ class Book(Base):
 
     def __repr__(self) -> str:
         return f'<Book(id={self.id}, name={self.name}, category_id={self.category_id})>'
+    
+class VoteResults(Base):
+    __tablename__ = 'voting_results'
+    
+    voting_id = Column(Integer, ForeignKey('voting.id'), primary_key=True)
+    voting_type = Column(Integer, ForeignKey('voting_type.id'))
+    first_place_id = Column(Integer)
+    second_place_id = Column(Integer)
+    third_place_id = Column(Integer)
 
-
-
-class VoteType(Base):
-    __tablename__ = 'vote_type'
+class VotingType(Base):
+    __tablename__ = 'voting_type'
 
     id = Column(Integer, primary_key=True)
     vote_type_name = Column(String, nullable=True)
+
 
 
 class Voting(Base):
@@ -70,7 +76,7 @@ class Voting(Base):
     id = Column(Integer, primary_key=True)
     voting_start = Column(Date, nullable=False, unique=True)
     voting_finish = Column(Date, nullable=True, unique=True)
-    voting_type = Column(Integer, ForeignKey('vote_type.id'), nullable=False)
+    voting_type = Column(Integer, ForeignKey('voting_type.id'), nullable=False)
     __table_args__ = (
         CheckConstraint(voting_finish > voting_start),
     )
@@ -79,13 +85,13 @@ class Voting(Base):
 class VoteBook(Base):
     __tablename__ = 'vote_book'
 
-    vote_id = Column(Integer, ForeignKey('voting.id'), primary_key=True)
+    voting_id = Column(Integer, ForeignKey('voting.id'), primary_key=True)
     user_id = Column(Integer, ForeignKey('bot_user.telegram_id'), primary_key=True)
     first_book_id = Column(Integer, ForeignKey('book.id'))
     second_book_id = Column(Integer, ForeignKey('book.id'))
     third_book_id = Column(Integer, ForeignKey('book.id'))
     __table_args__ = (
-        ForeignKeyConstraint(['vote_id'], ['voting.id']),
+        ForeignKeyConstraint(['voting_id'], ['voting.id']),
         ForeignKeyConstraint(['user_id'], ['bot_user.telegram_id']),
     )
 
@@ -93,12 +99,13 @@ class VoteBook(Base):
 class VoteCategory(Base):
     __tablename__ = 'vote_category'
 
-    vote_id = Column(Integer, ForeignKey('voting.id'), primary_key=True)
+    voting_id = Column(Integer, ForeignKey('voting.id'), primary_key=True)
     user_id = Column(Integer, ForeignKey('bot_user.telegram_id'), primary_key=True)
     first_category_id = Column(Integer, ForeignKey('book_category.id'))
     second_category_id = Column(Integer, ForeignKey('book_category.id'))
     third_category_id = Column(Integer, ForeignKey('book_category.id'))
     __table_args__ = (
-        ForeignKeyConstraint(['vote_id'], ['voting.id']),
+        ForeignKeyConstraint(['voting_id'], ['voting.id']),
         ForeignKeyConstraint(['user_id'], ['bot_user.telegram_id']),
     )
+    
