@@ -16,6 +16,6 @@ BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 
 DATE_FORMAT = "%d.%m.%Y"
-ALL_BOOKS_CALLBACK_PATTERN = "all_books_"
 VOTE_BOOKS_CALLBACK_PATTERN = "vote_"
 
+LITRA_CALLBACK_PREFIX = "litra:"

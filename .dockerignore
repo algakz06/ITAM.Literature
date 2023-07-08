@@ -1,0 +1,8 @@
+README.md
+debug.log
+.env
+.gitignore
+.vscode
+poetry.lock
+pyproject.toml
+__pycache__

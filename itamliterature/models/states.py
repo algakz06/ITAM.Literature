@@ -14,3 +14,6 @@ class BookProcess(StatesGroup):
     
 class AdminProcess(StatesGroup):
     add_admin = State()
+    
+class ReadingDatesProcess(StatesGroup):
+    set_reading_dates = State()

@@ -7,10 +7,10 @@ RUN apt-get update \
 
 WORKDIR /litra
 
-COPY ./app/requirements.txt .
+COPY ./requirements.txt .
 
 RUN pip install -r requirements.txt
 
 COPY . /litra/
 
-CMD ["python3.11", "app/app.py"]
+CMD ["python3", "-m", "itamliterature"]

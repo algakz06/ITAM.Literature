@@ -56,9 +56,10 @@ class Book:
         self.read_finish = book.read_finish
         self.read_comments = book.read_comments
         try:
-            self.name, self.author = tuple(atr.strip() for atr in book.name.split('::'))
+            self.name, self.author = tuple(atr.strip() for atr in book.name.split("::"))
         except ValueError:
-            self.name, self.author = book.name, ''
+            self.name, self.author = book.name, ""
+
 
 @dataclass
 class Category:
@@ -71,26 +72,29 @@ class Category:
         self.id = category.id
         self.name = category.name
 
+
 class Voting(Enum):
     Category = 1
     Book = 2
 
-class Vote():
+
+class Vote:
     first_vote: int
     second_vote: int
     third_vote: int
 
     def __init__(self, votes: List[int]) -> None:
         self.first_vote, self.second_vote, self.third_vote = votes
-        
-class VoteResult():
+
+
+class VoteResult:
     first_place: int
     second_place: int
     third_place: int
-    
+
     def __init__(self, places: List[int]) -> None:
         self.first_place, self.second_place, self.third_place = places
-        
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     print(Voting.Category)
-        
